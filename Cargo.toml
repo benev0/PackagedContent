@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-client = { path = "./RustedToolbox/client"}
-server = { path = "./RustedToolbox/server"}
-shared = { path = "./RustedToolbox/shared"}
+client = { path = "./BustedToolbox/client"}
+server = { path = "./BustedToolbox/server"}
+shared = { path = "./BustedToolbox/shared"}
 
 [[bin]]
 name = "server"
