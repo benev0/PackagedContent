@@ -1,17 +1,8 @@
-[package]
-name = "content"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-client = { path = "./BustedToolbox/client"}
-server = { path = "./BustedToolbox/server"}
-shared = { path = "./BustedToolbox/shared"}
-
-[[bin]]
-name = "server"
-path = "./server/main.rs"
-
-[[bin]]
-name = "client"
-path = "./client/main.rs"
+[workspace]
+name = "Content"
+members = [
+    "cclient",
+    "cserver",
+    "cshared",
+]
+exclude = []

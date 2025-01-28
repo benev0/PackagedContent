@@ -1,0 +1,11 @@
+[package]
+name = "cshared"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+shared = { path = "../BustedToolbox/shared"}
+
+[lib]
+crate-type = ["cdylib"]
+bench = false

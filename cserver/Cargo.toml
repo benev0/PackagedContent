@@ -1,0 +1,8 @@
+[package]
+name = "cserver"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+server = { path = "../BustedToolbox/server"}
+shared = { path = "../BustedToolbox/shared"}

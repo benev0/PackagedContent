@@ -1,4 +1,0 @@
-
-fn main() {
-    client::main();
-}
