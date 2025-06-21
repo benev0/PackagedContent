@@ -1,56 +1,55 @@
 {
   inputs = {
-    naersk.url = "github:nix-community/naersk/master";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
-    utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, utils, naersk }:
-    utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        naersk-lib = pkgs.callPackage naersk { };
-      in
-      {
-        defaultPackage = naersk-lib.buildPackage ./.;
-        devShell = with pkgs; mkShell {
+  outputs = inputs @ { self, nixpkgs, flake-utils, rust-overlay, ... }:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs { inherit system overlays; };
+      in {
+        devShells.default = with pkgs; mkShell rec {
           buildInputs = [
-            cargo
-            rustc
-            rustfmt
-            pre-commit
-            rustPackages.clippy
+            (rust-bin.stable.latest.minimal.override {
+              extensions = [ "clippy" "rust-analyzer" "rust-docs" "rust-src" ];
+            })
+            (rust-bin.selectLatestNightlyWith (toolchain: toolchain.rustfmt))
+
+            # temp raylib + flecs dependencies
             cmake
             clang
             pkg-config
-            wayland
             glfw
-            xorg.libX11
-            xorg.libXrandr
             xorg.libXinerama
-            xorg.libXcursor
-            xorg.libXi
-            # libclang
-            # clangStdenv
-            # mesa
-            # glfw
-            # glibc
-          ];
-          # stdenvs = [
-          #   "ccacheStdenv"
-          #   "clangStdenv"
-          #   "gccStdenv"
-          #   "libcxxStdenv"
-          #   "stdenv"
-          # ];
-          LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath [
             libGL
+
+            # Vulkan dependencies
+            shaderc
+            spirv-tools
+            vulkan-loader
+            vulkan-tools
+            vulkan-tools-lunarg
+            vulkan-validation-layers
+
+            # winit dependencies
+            libxkbcommon
+            wayland
             xorg.libX11
-            xorg.libXrandr
-            xorg.libXinerama
             xorg.libXcursor
             xorg.libXi
+            xorg.libXrandr
           ];
+
+          LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
+          SHADERC_LIB_DIR = lib.makeLibraryPath [ shaderc ];
+          VK_LAYER_PATH = "${vulkan-validation-layers}/share/vulkan/explicit_layer.d";
+
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
           LIBCLANG_PATH = "${pkgs.llvmPackages_16.libclang.lib}/lib";
         };

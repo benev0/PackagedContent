@@ -4,5 +4,5 @@
 pub static __INTERNAL_BUSTED_TOOLBOX_BIN_NO_SERVER_CODE: u8 = 0;
 
 fn main() {
-    client::main();
+    let _ = client::main();
 }
