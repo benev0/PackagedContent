@@ -6,9 +6,9 @@ members = [
     "cshared",
 ]
 exclude = []
+resolver = "3"
 
 [workspace.dependencies]
-
 client = { path = "BustedToolbox/client" }
 server = { path = "BustedToolbox/server" }
 shared = { path = "BustedToolbox/shared" }

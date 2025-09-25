@@ -284,6 +284,7 @@ dependencies = [
 name = "client"
 version = "0.1.0"
 dependencies = [
+ "flecs_ecs",
  "shared",
  "vulkano",
  "vulkano-shaders",
