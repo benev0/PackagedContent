@@ -1,36 +1,26 @@
 {
-  description = "Development environment for BustedToolbox projects";
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    fenix = {
-      url = "github:nix-community/fenix";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = inputs @ { self, nixpkgs, flake-utils, fenix, ... }:
+  outputs = inputs @ { self, nixpkgs, flake-utils, rust-overlay, ... }:
     flake-utils.lib.eachDefaultSystem (
-      system:  let
-        # overlays = [ (import fenix) ];
-        pkgs = nixpkgs.legacyPackages.${system};
-        fenixLib = fenix.packages.${system};
-        rustToolchain = fenixLib.stable.toolchain;
-        # pkgs = import nixpkgs { inherit system overlays; };
+      system: let
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs { inherit system overlays; };
       in {
         devShells.default = with pkgs; mkShell rec {
           buildInputs = [
-            # rust
-            rustToolchain
-
-            # temp raylib + flecs dependencies
-            cmake
-            clang
-            pkg-config
-            glfw
-            xorg.libXinerama
-            libGL
+            (rust-bin.stable.latest.minimal.override {
+              extensions = [ "clippy" "rust-analyzer" "rust-docs" "rust-src" ];
+            })
+            # We use nightly rustfmt features.
+            (rust-bin.selectLatestNightlyWith (toolchain: toolchain.rustfmt))
 
             # Vulkan dependencies
             shaderc
@@ -39,6 +29,9 @@
             vulkan-tools
             vulkan-tools-lunarg
             vulkan-validation-layers
+
+            # OpenGL dependencies (needed for the gl-interop example)
+            libGL
 
             # winit dependencies
             libxkbcommon
@@ -52,10 +45,6 @@
           LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
           SHADERC_LIB_DIR = lib.makeLibraryPath [ shaderc ];
           VK_LAYER_PATH = "${vulkan-validation-layers}/share/vulkan/explicit_layer.d";
-
-          RUST_SRC_PATH = rustPlatform.rustLibSrc;
-          # LIBCLANG_PATH = "${pkgs.llvmPackages_16.libclang.lib}/lib";
-          LIBCLANG_PATH = "${pkgs.llvmPackages_21.libcxxStdenv}/lib";
         };
       }
     );
